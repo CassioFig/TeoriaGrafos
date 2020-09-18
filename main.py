@@ -1,123 +1,116 @@
+from math import inf
 
-# grafo = {1: [2, 3], 2: [5, 4], 3: [1, 4], 4: [3, 5, 6], 5: [2, 4], 6: [4, 7, 8], 7: [6, 8], 8: [7, 6]}
+# Grafo
+vertice = ['t', 'u', 'x', 'v', 'y']
+adj = {'t': ['x', 'u'], 'x': ['u', 'v', 'y'], 'u': ['x', 'v'], 'v': ['y'], 'y': ['v', 't']}
+peso = {'tu': 10, 'tx': 5, 'xu': 3, 'ux': 2, 'uv': 1, 'xv': 9, 'xy': 2, 'vy': 4, 'yv': 6, 'yt': 7}
 
-grafo = {1: [2, 3], 2: [1, 4], 3: [1, 4], 4: [3, 2]}
-
-
-# Printa o grafo por lista de adjacência.
-def printaGrafo(g):
-    for i in range(len(g)):
-        print(f'{i + 1}: {g[i + 1]}')
-
-
-# Método que verifica se todos os vértices possuem o mesmo grau.
-def ehRegular(g):
-    regular = False
-    aux = len(g[1])
-
-    for i in g:
-        if len(g[i]) != aux:
-            regular = False
-            break
-        else:
-            regular = True
-
-    return regular
+# Tabela
+s = []
+dist = {}
+path = {}
 
 
-# Método para escolher o vértice.
-def escolha():
-    parametro = int(input(f"\nEscolha um vértice (de 1 a {len(grafo)}): "))
-    while parametro < 1 or parametro > 12:
-        print("\nOpa, errado. Tente novamente!!\n")
-        parametro = int(input(f"Escolha um vértice (de 1 a {len(grafo)}): "))
-    return parametro
+def inicializaListas(v, d):
+    # Adiciona o vértice de origem.
+    s.append(d)
+
+    # Inicia as listas de dist e path
+    dist[d] = 0
+    for i in range(len(v)):
+        if v[i] not in dist:
+            dist[v[i]] = inf
+
+    for i in range(len(v)):
+        path[v[i]] = None
 
 
-# Método para retornar os vértices adjacentes do vértice escolhido.
-def getAdjacentes(g, num):
-    for j in range(len(g)):
-        if num == j + 1:
-            print(g[j + 1])
-
-
-# Método que adiciona os vértices do grafo em uma lista.
-def listaVertices(g):
-    v = []
-    for x in g:
-        v.append(x)
-    return v
-
-
-# Função que verifica se todos os vértices são adjacentes entre si.
-def ehCompleto(g):
-    v = listaVertices(g)
-    completo = False
-
-    i = 1
-    j = 0
-    v.remove(i)
-    while i <= len(g):
-        if j < len(g[i]):
-            if v[j] not in g[i] or len(g[i]) < len(g[1]):
-                completo = False
-                break
-            else:
-                completo = True
-            j += 1
-
-        elif i == len(g):
-            break
-        else:
-            v.append(i)
-            j = 0
-            i += 1
-            v.remove(i)
-
-    return completo
-
-
-# Verifica se existe um caminho entre cada par de vértice.
-def ehConexo(g):
-    v = listaVertices(g)
-    conexo = False
-    pilha = []
-    visitado = []
-    explorado = []
-
-    visitado.append(v[0])
-    pilha.append(v[0])
-
+def algoritmo_Dijkstra():
     i = 0
-    while len(pilha) > 0:
-        w = g[pilha[len(pilha) - 1]]
-        while w[i] not in visitado and w[i] in g[pilha[len(pilha) - 1]]:
-            visitado.append(w[i])
-            pilha.append(w[i])
-            w = g[pilha[len(pilha) - 1]]
-            i = 0
+    j = s[len(s) - 1]
+    t = len(adj[j])
 
-        if len(w) - 1 > i:
-            i += 1
-            continue
+    while i < t:
+        if adj[j][i] not in s:
+            z = adj[j][i]
+            if dist[z] > dist[j] + peso[j + z]:
+                dist[z] = dist[j] + peso[j + z]
+                path[z] = j
+        i += 1
 
-        explorado.append(pilha[len(pilha) - 1])
-        pilha.pop()
-        i = 0
-
-    if len(pilha) == 0:
-        if len(explorado) == len(v):
-            conexo = True
-        else:
-            conexo = False
-
-    return conexo
+    compara()
 
 
-printaGrafo(grafo)
-getAdjacentes(grafo, escolha())
-print('--' * 10)
-print("É regular: ", ehRegular(grafo))
-print("\nÉ completo: ", ehCompleto(grafo))
-print("\nÉ conexo: ", ehConexo(grafo))
-print('--' * 10)
+def compara():
+    aux = 0
+    v = ''
+
+    c = 0
+    for i in range(len(dist)):
+        if vertice[i] not in s:
+            if c == 0:
+                aux = dist[vertice[i]]
+                v = vertice[i]
+                c += 1
+            elif dist[vertice[i]] < aux:
+                aux = dist[vertice[i]]
+                v = vertice[i]
+
+    s.append(v)
+
+
+def menorCaminho(d, p):
+    caminho = []
+
+    v = p
+    caminho.append(v)
+    while v != d:
+        v = path[v]
+        caminho.append(v)
+
+    caminho.reverse()
+    return caminho
+
+
+def rodaAlgoritmo(v):
+    while len(s) != len(v):
+        algoritmo_Dijkstra()
+
+
+def main(v):
+
+    print('---' * 17)
+    print('[1] Caminho mais curto para todos os vértices\n[2] Caminho mais curto entre dois vértices.')
+    print('---' * 17)
+    opc = int(input('>> Digite qual função deseja: '))
+    print('---' * 12)
+
+    if opc == 1:
+        print(f'Vértices: {v}')
+        print('---' * 12)
+        de = input('Escolha o vértice de partida: ').lower()
+        print('---' * 12)
+
+        inicializaListas(v, de)
+        rodaAlgoritmo(v)
+
+        for i in range(len(v)):
+            print(f'Menor caminho de {de} para {v[i]}: {menorCaminho(de, v[i])}')
+
+    elif opc == 2:
+        print(f'Vértices: {v}')
+        print('---' * 12)
+        de = input('Escolha o vértice de partida: ').lower()
+        para = input('Escolha o vértice de chegada: ').lower()
+        print('---' * 12)
+
+        inicializaListas(v, de)
+        rodaAlgoritmo(v)
+
+        print(f'Menor caminho de {de} para {para}: {menorCaminho(de, para)}')
+
+    else:
+        print('Opção inválida!')
+
+
+main(vertice)
